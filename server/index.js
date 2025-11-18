@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
+// import bodyParser from 'body-parser';
 import http from 'http';
 import { Server } from 'socket.io';
 // ----- For deployment -----
@@ -24,10 +24,10 @@ const app = express();
 app.use(cors({
     origin : 'http://localhost:3000',
     credentials:true}));
-app.use(cookieParser());
-app.use(bodyParser.json({limit: '5mb'}));
-app.use(bodyParser.urlencoded({limit: '5mb', extended: true}));
 app.use(express.json());
+app.use(cookieParser());
+// app.use(bodyParser.json({limit: '5mb'}));
+app.use(express.urlencoded({limit: '5mb', extended: true}));
 
 //Use  router controllers, API endpoints
 app.use('/auth', authRouter);
@@ -96,3 +96,4 @@ io.on('connection', socket=>{
     });
 
 });
+
