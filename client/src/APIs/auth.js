@@ -1,6 +1,6 @@
 import { axiosInstance} from "./axiosInstance.js";
 
-//Authorizaton API for SignUp
+//Authorizaton API function for SignUp
 export const signupUser = async (user) => {
     try {
         const response = await axiosInstance.post('/auth/signup', user);
@@ -10,7 +10,7 @@ export const signupUser = async (user) => {
     }
 }
 
-//Authorizaton API for login
+//Authorizaton API function for login
 export const loginUser = async (user) => {
     try {
         const response = await axiosInstance.post('/auth/login', user);
@@ -20,7 +20,7 @@ export const loginUser = async (user) => {
     }
 }
 
-//Authorizaton API for logout
+//Authorizaton API function for logout
 export const logoutUser = async () => {
     try {
         const response = await axiosInstance.post('/auth/logout');
@@ -30,7 +30,7 @@ export const logoutUser = async () => {
     }
 }
 
-//Authorization API for does-user-exist
+//Authorization API function for does-user-exist
 export const doesUserExist = async ({email})=>{
     try {
         const response = await axiosInstance.post('/auth/does-user-exist', {email});
@@ -40,7 +40,7 @@ export const doesUserExist = async ({email})=>{
     }
 }
 
-//Authorization API to send OTP
+//Authorization API function to send OTP
 export const sendOTP = async ({email, type})=>{
     try {
         const response = await axiosInstance.post('/auth/send-otp', {email, type});
@@ -50,7 +50,7 @@ export const sendOTP = async ({email, type})=>{
     }
 }
 
-//Authorization API to verify otp
+//Authorization API function to verify otp
 export const verifyOTP = async ({email, otp})=>{
     try {
         const response = await axiosInstance.post('/auth/verify-otp', {email, otp});
@@ -60,7 +60,7 @@ export const verifyOTP = async ({email, otp})=>{
     }
 }
 
-// Authorization API to check if user is blocked
+// Authorization API function to check if user is blocked
 export const isUserBlocked = async ({email})=>{
     try {
         const response = await axiosInstance.post('/auth/is-user-blocked', {email});

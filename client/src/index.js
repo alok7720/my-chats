@@ -5,8 +5,14 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
 
+import * as process from 'process';
 //Custom imports
 import store from './redux/store.js';
+
+(window).global = window;
+(window).process = process;
+(window).Buffer = [];
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

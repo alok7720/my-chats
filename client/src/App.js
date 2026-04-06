@@ -15,7 +15,7 @@ function App() {
   const {user, isAuthLoading} = useSelector(state=>state.userReducer);
   const dispatch = useDispatch();
 
-   //  Run only once on app startup
+  //  Run only once on app startup
   useEffect(() => {
     const verifyUser = async () => {
       try {

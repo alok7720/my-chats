@@ -1,4 +1,4 @@
-import './chatArea.css'
+import './css/chatArea.css'
 
 const NoChatSelected = () => {
   return (

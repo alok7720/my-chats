@@ -1,0 +1,56 @@
+/* MessageSkeleton.css */
+.skeleton-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.skeleton-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Alignments */
+.skeleton-container.left { align-items: flex-start; }
+.skeleton-container.right { align-items: flex-end; }
+
+.skeleton-bubble {
+    height: 45px;
+    width: 220px;
+    border-radius: 18px;
+    /* Shimmer Effect Base */
+    background: #eeeeee;
+    background: linear-gradient(90deg, #eeeeee 25%, #a6a6a6 50%, #969595 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+/* Specific color for Right (Sent) bubbles so the shimmer shows */
+.skeleton-container.right .skeleton-bubble {
+    width: 180px;
+    background: #ffdada; /* Light Red base */
+    background: linear-gradient(90deg, #ffdada 25%, #f9afaf 50%, #f98787 75%);
+    background-size: 200% 100%;
+}
+
+.skeleton-time {
+    height: 10px;
+    width: 40px;
+    margin-top: 6px;
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+/* The Animation Fix */
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}

@@ -6,7 +6,7 @@ import moment from "moment";
 import { newChats } from "../APIs/chats.js";
 import { setAllChats, setSelectedChat } from "../redux/userSlice.js";
 import store from "../redux/store.js";
-import "./userList.css";
+import "./css/userList.css";
 
 function UserList({ searchKey, socket, onlineUsers}) {
   const { allUsers, allChats, user: currentUser, selectedChat } = useSelector((state) => state.userReducer);
@@ -22,7 +22,7 @@ function UserList({ searchKey, socket, onlineUsers}) {
     return map;
   }, [allChats, currentUser._id]);
 
-  // CREATE / OPEN CHAT
+  // CREATE CHAT
   const createNewChat = async (searchedUserId) => {
     try {
       const response = await newChats([currentUser._id, searchedUserId]);
@@ -41,6 +41,7 @@ function UserList({ searchKey, socket, onlineUsers}) {
     }
   };
 
+  // Funtion to Open chat when a user is clicked
   const showChat = (userId) => {
     const chat = chatByUserIdMap[userId];
     if (chat) {
@@ -59,8 +60,25 @@ function UserList({ searchKey, socket, onlineUsers}) {
   const getLastMessage = (userId) => {
     const chat = chatByUserIdMap[userId];
     if (!chat?.lastMessage) return "";
-    const prefix = chat.lastMessage.sender === currentUser._id ? "You: " : "";
-    return prefix + chat.lastMessage.text?.substring(0, 25) + "...";
+
+    const lastMsg = chat.lastMessage;
+    const prefix = lastMsg.sender === currentUser._id ? "You: " : "";
+    
+    // 1. Check if media exists and actually contains files
+    if (lastMsg.media && lastMsg.media.length > 0) {
+        const count = lastMsg.media.length;
+        const fileText = count === 1 ? "media file" : "media files";
+        return `${prefix}${count} ${fileText}`;
+    }
+
+    // 2. Fallback to text if no media or media length is 0
+    if (lastMsg.text) {
+        if (lastMsg.text.length < 25) {
+            return prefix + lastMsg.text;
+        } else {
+            return prefix + lastMsg.text.substring(0, 25) + "...";
+        }
+    }
   };
 
   const getLastMessageTime = (userId) => {
@@ -163,10 +181,11 @@ function UserList({ searchKey, socket, onlineUsers}) {
           </div>
       );
   }
+
   return (
-    <>
+    <div className="user-search-filter">
       {filteredList.map(({ user, chat }) => {
-        const isOnline = onlineUsers.includes(user._id);
+        const isOnline = onlineUsers.has(user._id);
 
         return (
           <div key={user._id} className="user-search-filter" onClick={() => showChat(user._id)}>
@@ -201,7 +220,7 @@ function UserList({ searchKey, socket, onlineUsers}) {
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
 

@@ -4,7 +4,7 @@ import {useSelector} from 'react-redux';
 
 import UserList from "./userList.js";
 import SidebarSkeleton from './SidebarSkeleton.js'
-import "./sidebar.css";
+import "./css/sidebar.css";
 
 function Sidebar({socket, onlineUsers}){
     const { isChatLoading } = useSelector(state => state.userReducer);

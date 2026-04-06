@@ -34,13 +34,18 @@ router.post('/new-message', authMiddleware, async (req, res) => {
 //GET API to receive all the sent messages of the logged-in user
 router.get('/get-messages/:chatId', authMiddleware, async (req, res) => {
     try {
-        //Get all the messages from the route parameters of the request
-        const allMsg = await Message.find({ chatId: req.params.chatId }).sort({ createdAt: 1 });
+        const { skip = 0, limit = 100 } = req.query; // Default limit of 100
+
+        const allMsg = await Message.find({ chatId: req.params.chatId })
+                                    .sort({ createdAt: 1 })
+                                    .skip(parseInt(skip))
+                                    .limit(parseInt(limit));
 
         res.status(200).send({
             message: "Messages fetched.",
             success: true,
-            data: allMsg
+            data: allMsg,
+            hasMore : allMsg.length === parseInt(limit)
         });
 
     } catch (error) {

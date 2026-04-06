@@ -90,7 +90,7 @@
 }
 
 .form button {
-  background-color: #e74c3c;
+  /* background-color: #e74c3c; */
   color: #ffffff;
   font-size: 16px;
   outline: none;
@@ -128,16 +128,19 @@
   background-color: #fdedec;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
 .main-content{
   display: flex;
   width: 100%;
   margin: 10px auto;
-  padding: 10px 10px;
+  padding: 10px;
   flex:1;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Hide chat area on mobile by default */

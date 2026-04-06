@@ -29,6 +29,7 @@ function Signup() {
 
         return true;
     };
+
     async function onFormSubmit(event) {
         event.preventDefault();
         try {
@@ -88,10 +89,19 @@ function Signup() {
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // Check file type
         if (!file?.type.startsWith("image/")) {
-            toast.error("Please select an image file");
+            toast.error("Please select an image file.");
             return;
         }
+        // Check File Size (2MB Limit)
+        const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+        if (file.size > maxSize) {
+            toast.error("Image must be less than 2MB.");
+            return;
+        }
+
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
@@ -100,11 +110,12 @@ function Signup() {
             setUser({ ...user, profilePic: base64Image })
         };
     };
+
     // Helper: allow ONLY letters
     const onlyLetters = (value) => value.replace(/[^A-Za-z]/g, "");
     const [state, setState] = useState('Sign Up');
     const [otp, setOTP] = useState('');
-
+    const isLoading = btn === "Sending OTP..." || btn === "Verifying..." || btn === "Signning Up...";
     
     return (<>
         <div className="app-container flex-wrap">
@@ -153,11 +164,16 @@ function Signup() {
                         </div></>)}
 
                         {(state==='Verify') && <div className="password-wrapper">
-                        <input type='text' placeholder="OTP" value={otp} 
-                        onChange={(e) => setOTP( e.target.value.replace(/\s/g, ""))} 
-                            onKeyDown={(e) => {if (e.key === " ") e.preventDefault();}} required/>
-                        </div>}
-                        <button> {btn}</button>
+                            <input type='text' placeholder="OTP" value={otp} 
+                            onChange={(e) => setOTP( e.target.value.replace(/\s/g, ""))} 
+                                onKeyDown={(e) => {if (e.key === " ") e.preventDefault();}} required/>
+                            </div>
+                        }
+                        <button disabled = {isLoading}
+                            className={`rounded text-white transition-all ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-[#e74c3c]"}`}
+                        > 
+                        {btn}
+                        </button>
                     </form>
                 </div>
                 <div className="card_terms">

@@ -31,7 +31,7 @@ function Login() {
                     toast.error(response.message);
                     setBtn('Login')
                 }
-            }
+            }           
             // If user wants to reset his/her password
             else if(state === 'Send OTP'){
                 //first check whether the user exists 
@@ -59,7 +59,7 @@ function Login() {
                 else{
                     toast.error(response.message);
                 }              
-            }
+            }           
             else if(state === 'Reset Password'){
                 // First verify the entered OTP
                 setBtn('Verifying OTP...');
@@ -93,6 +93,7 @@ function Login() {
         }
     }
     
+    const isLoading = btn === "Logging..." || btn === "Sending..." || btn === "Verifying OTP..." || btn === "Resetting...";
     return (<>
         <div className="app-container flex-wrap">
             <div className="container-back-img"></div>
@@ -126,15 +127,28 @@ function Login() {
                             onKeyDown={(e) => {if (e.key === " ") e.preventDefault();}} required/>
                         </div>
                         }
-                        <button className={(btn==='Login' || btn==='Send OTP' || btn==='Reset Password')?"":"bg-gray-400 cursor-not-allowed"}>{btn}</button>
+                        <button disabled={isLoading}
+                            className={` rounded text-white transition-all
+                            ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-[#e74c3c]"}`}>{btn}
+                        </button>
                     </form>
                 </div>
                 <div className="card_terms flex flex-col">
                     {state==='Login'&&<span> Forgot Password ?<span className="cursor-pointer text-blue-400" 
-                    onClick={()=>{setState('Send OTP');setBtn('Send OTP');setUser({...user, email:"", password:""});setOTP('')}}> Reset Here</span></span>}
+                    onClick={()=>{
+                        setState('Send OTP');
+                        setBtn('Send OTP');
+                        setUser({...user, email:"", password:""});
+                        setOTP('')
+                    }}> Reset Here</span></span>}
                     
                     {(state==='Send OTP'||state==='Reset Password')&&<span className=" cursor-pointer text-blue-400" 
-                    onClick={()=>{setBtn('Login');setState('Login');setUser({...user, email:"", password:""});setOTP('')}}><i className="fa fa-arrow-left"></i>Go back to Login</span>}
+                    onClick={()=>{
+                        setBtn('Login');
+                        setState('Login');
+                        setUser({...user, email:"", password:""});
+                        setOTP('')
+                        }}><i className="fa fa-arrow-left"></i>Go back to Login</span>}
                     
                     <span>Don't have an account yet?
                         <Link to="/signup">Signup</Link>

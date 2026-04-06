@@ -47,9 +47,22 @@ router.get('/all-users', authMiddleware, async (req, res) => {
 // UPDATE USER PROFILE
 router.post('/update-user', authMiddleware, async (req, res) => {
     try {
+        const user = await User.findById(req.user.id);
+        
+        // --- 15 Day Check ---
+        const lastUpdate = user.profileUpdatedDate || new Date(0);
+        const daysSinceUpdate = (new Date() - lastUpdate) / (1000 * 60 * 60 * 24);
+
+        if (daysSinceUpdate < 15) {
+            const daysRemaining = Math.ceil(15 - daysSinceUpdate);
+            return res.status(403).send({
+                success: false,
+                message: `You can update your profile again in ${daysRemaining} days.`
+            });
+        }
         const { firstName, lastName, password, profilePic } = req.body;
 
-        const updateData = {};
+        const updateData = {profileUpdatedDate: new Date()}; // Update the cooldown timestamp
 
         if (firstName) updateData.firstName = firstName;
         if (lastName) updateData.lastName = lastName;
@@ -59,7 +72,7 @@ router.post('/update-user', authMiddleware, async (req, res) => {
             updateData.password = hashedPassword;
         } 
 
-        const updatedUser = await User.findByIdAndUpdate( req.user.id,updateData,{ new: true }).select("-password"); // don't return password to frontend
+        const updatedUser = await User.findByIdAndUpdate( req.user.id, updateData, { new: true }).select("-password"); // don't return password to frontend
 
         res.send({
             success: true,
@@ -68,15 +81,15 @@ router.post('/update-user', authMiddleware, async (req, res) => {
         });
 
     } catch (error) {
-        console.log("Error in update-user controller");
-        res.send({
+        console.log("Error in update-user controller.", error);
+        res.status(500).send({
             success: false,
             message: error.message
         });
     }
 });
 
-
+// API to reset user password
 router.post('/reset-password', async (req, res) => {
     try {
         const { email, newPassword } = req.body;

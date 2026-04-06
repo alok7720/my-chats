@@ -1,0 +1,35 @@
+.app-sidebar {
+    width: 30%;
+    padding: 0px 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* CUSTOM SCROLLBAR FOR SIDEBER */
+.user-search-filter {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.user-search-filter::-webkit-scrollbar {
+    width: 5px;
+}
+
+/* Track */
+.user-search-filter::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 2px grey;
+    border-radius: 10px;
+}
+
+/* Handle */
+.user-search-filter::-webkit-scrollbar-thumb {
+    background: #e74c3c;
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+.user-search-filter::-webkit-scrollbar-thumb:hover {
+    background: #e74c3c;
+}

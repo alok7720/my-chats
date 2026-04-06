@@ -1,0 +1,212 @@
+/* CSS STYLES FOR CHAT AREA */
+.app-chat-area{
+  background-color: white;
+  width: 70vw;
+  padding: 20px 30px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+/* CSS STYLES FOR CHAT AREA HEADER */
+.app-chat-area-header{
+    padding: 10px 30px;
+    margin-bottom: 20px;
+    border-bottom: #bbb 1px solid;
+    text-align: right;
+    font-weight: bold;
+    color: #e74c3c;
+    display: flex;
+    
+}
+
+.selected-user{
+  border-bottom: #ccc 1px solid;
+  padding: 10px 10px;
+  color: white;
+  cursor: pointer;
+  background-color: #e74c3c;
+  border-radius: 20px;
+}
+
+.selected-user-avatar{
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: white;
+  color: #e74c3c;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 50px;
+}
+
+/* CSS STYLES FOR CHAT AREA & CHAT INPUT */
+.main-chat-area{
+    flex: 1;
+    overflow-y: scroll;
+    padding: 10px 20px;
+}
+
+.send-message-div{
+    position: relative;
+    margin-top: 20px;
+    display: flex;
+    align-items: flex-end;
+    background: #fff;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    min-height: 60px;
+}
+
+.send-message-input {
+    width: 100%;
+    min-height: 40px;
+    max-height: 150px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    padding: 10px 100px 10px 15px; /* Added 100px padding on the right */
+    outline: none;
+    font-size: 14px;
+    box-sizing: border-box; /* Ensures padding doesn't affect total width */
+    resize: none; /* Disables manual resizing by user */
+    line-height: 20px;
+    overflow-y: auto; /* Adds scrollbar only if max-height is reached */
+    scrollbar-width: none;
+    transition: height 0.1s ease;
+}
+
+.send-message-btn, .img-btn, .send-emoji-btn{
+    position: absolute;
+    bottom : 20px;
+    font-size: 25px !important;
+    color: #e74c3c;
+    cursor: pointer;
+    border: none;
+    padding-top : 10px;
+}
+.send-message-btn{
+   right: 20px;
+}
+.send-emoji-btn{
+ right: 55px;
+}
+.img-btn{
+    right : 90px;
+}
+
+/* CSS FOR CHAT MESSAGES */
+.message-container{
+    display: flex;
+}
+.send-message, .received-message{
+    padding: 10px 20px;
+    margin-top: 5px;
+    border-radius: 10px;
+    font-size: 14px;
+    width: fit-content;
+}
+
+.send-message{ 
+    background-color: #e74c3c;
+    color: white;
+    margin-left: 100px;
+    border-bottom-right-radius: 0px;
+}
+
+.received-message{ 
+    background-color: #ddd;
+    color: #28282B;
+    margin-right: 100px;
+    border-bottom-left-radius: 0px;
+}
+
+.message-timestamp{
+    width: fit-content;
+    font-size: 15px;
+}
+
+.typing-indicator{
+    font-size: 12px;
+    color: gray;
+}
+
+/* CUSTOM SCROLLBAR FOR CHATAREA */
+.main-chat-area::-webkit-scrollbar {
+    width: 5px;
+}
+
+/* Track */
+.main-chat-area::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 2px grey; 
+    border-radius: 10px;
+}
+
+/* Handle */
+.main-chat-area::-webkit-scrollbar-thumb {
+    background: #e74c3c; 
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+.main-chat-area::-webkit-scrollbar-thumb:hover {
+    background: #e74c3c; 
+}
+
+/* Container to hold the picker above the input bar */
+.emoji-picker-container {
+    position: absolute;
+    bottom: 70px; /* Adjust based on your send-message-div height */
+    right: 10px;
+    z-index: 1000;
+    width: 350px; /* Default desktop width */
+    max-width: 90vw; /* Ensure it doesn't overflow mobile screens */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Responsive adjustment for mobile */
+@media (max-width: 480px) {
+    .emoji-picker-container {
+        width: 100%;
+        right: 0;
+        bottom: 80px;
+        left: 0;
+        border-radius: 0;
+        max-width: 100vw;
+    }
+}
+
+/* Grid layout */
+.media-grid-container {
+    display: grid;
+    gap: 4px;
+    width: 100%;
+    max-width: 300px; /* Adjust based on your bubble width */
+    margin-bottom: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* 1 Item: Large Square */
+.count-1 { grid-template-columns: 1fr; height: 250px; }
+
+/* 2 Items: Two vertical strips or squares */
+.count-2 { grid-template-columns: 1fr 1fr; height: 150px; }
+
+/* 3 Items: 1 Top, 2 Bottom */
+.count-3 { 
+    grid-template-columns: 1fr 1fr; 
+    grid-template-rows: 150px 150px;
+}
+.count-3 div:first-child { grid-column: span 2; }
+
+/* 4+ Items: Perfect 2x2 Grid */
+.count-4 { 
+    grid-template-columns: 1fr 1fr; 
+    grid-template-rows: 120px 120px; 
+}

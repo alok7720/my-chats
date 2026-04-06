@@ -4,10 +4,13 @@ import toast from "react-hot-toast";
 
 import { logoutUser } from "../APIs/auth.js";
 import { setUser } from "../redux/userSlice.js";
-import "./header.css";
+import {setUploads} from "../redux/uploadSlice.js";
+import "./css/header.css";
 
 function Header({socket, inProfile, setInProfile}) {
     const {user} = useSelector(state=>state.userReducer);
+    const {uploads} = useSelector(state=>state.uploadReducer);
+
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -30,6 +33,8 @@ function Header({socket, inProfile, setInProfile}) {
         try {
             const response = await logoutUser();
             if(response.success){
+                uploads.forEach(u => u.controller.abort());
+                dispatch(setUploads([]));
                 dispatch(setUser(null));
                 navigate('/login');
                 toast.success(response.message);

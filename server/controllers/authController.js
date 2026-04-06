@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 import User from '../models/userModel.js';
-import transporter,{AUTH_MAIL_TEMPLATE, PASSWORD_RESET_TEMPLATE} from '../lib/mailer.js';
+import {transporter,AUTH_MAIL_TEMPLATE, PASSWORD_RESET_TEMPLATE} from '../lib/mailer.js';
 
 const router = express.Router();
 
@@ -12,6 +12,7 @@ const otp_map = {};
 const blocked_user = {};
 const login_blocked = {};
 
+// Function to generate token for cookie
 const generateToken = (userId, res) => {
     const jwtToken = jwt.sign({ userId }, process.env.JWT_KEY, {expiresIn: "15d",});
 
@@ -25,6 +26,7 @@ const generateToken = (userId, res) => {
     return jwtToken;
 };
 
+// API to check whether a user is blocked
 router.post('/is-user-blocked', async (req, res)=>{
     try {
         const {email} = req.body;
@@ -40,6 +42,7 @@ router.post('/is-user-blocked', async (req, res)=>{
     }
 });
 
+// API to check whether a user exists already
 router.post('/does-user-exist', async (req, res)=>{
     //Check whether user exists or not
     try {
@@ -59,6 +62,7 @@ router.post('/does-user-exist', async (req, res)=>{
     }        
 });
 
+// API for signup
 router.post('/signup', async (req, res) => {
     const { firstName, lastName, email, password, profilePic } = req.body;
     try {
@@ -97,7 +101,7 @@ router.post('/signup', async (req, res) => {
             })
         }
     } catch (error) {
-        console.log("Error in signup controller");
+        console.log("Error in signup controller : ", error);
         res.send({
             message: error.message,
             success: false
@@ -105,6 +109,7 @@ router.post('/signup', async (req, res) => {
     }
 });
 
+//API for user login
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     if(!email || !password){
@@ -164,7 +169,7 @@ router.post('/login', async (req, res) => {
         });
 
     } catch (error) {
-        console.log("Error in login controller");
+        console.log("Error in login controller : ", error);
         res.send({
             message: error.message,
             success: false
@@ -172,17 +177,19 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// API for user logout
 router.post('/logout', async (req, res) => {
     try {
         res.clearCookie('token')
         return res.json({ success: true, message: 'Logged out successfully !' });
 
     } catch (error) {
-        console.log("Error in logout controller");
+        console.log("Error in logout controller : ", error);
         return res.json({ success: false, message: error.message });
     }
 });
 
+// API to send OTP
 router.post('/send-otp', async (req, res) => {
     try {
         const { email,type } = req.body;
@@ -214,7 +221,7 @@ router.post('/send-otp', async (req, res) => {
         const mailSubject = (type === "verify") ? "Account Verification OTP " : "Password Reset OTP";
         const mailText = (type === "verify") ? AUTH_MAIL_TEMPLATE.replace('{{otp}}',otp) : PASSWORD_RESET_TEMPLATE.replace('{{otp}}',otp);
         const mailOptions = {
-            from : '"MyChats"alokraj69798999@gmail.com',
+            from : process.env.MAIL_USER,
             to : email,
             subject : mailSubject ,
             html:mailText
@@ -225,7 +232,7 @@ router.post('/send-otp', async (req, res) => {
         res.send({ success: true, message: 'An OTP is sent to your mail.' });
 
     } catch (error) {
-        console.log('Error in send OTP controller.');
+        console.log('Error in send OTP controller : ', error);
         res.send({
             success: false,
             message: error.message
@@ -233,6 +240,7 @@ router.post('/send-otp', async (req, res) => {
     }
 });
 
+// API to verify OTP
 router.post('/verify-otp', async (req, res) => {
     try {
         const { email, otp } = req.body;
@@ -282,7 +290,7 @@ router.post('/verify-otp', async (req, res) => {
 
 
     } catch (error) {
-        console.log('Error in verify otp controller.');
+        console.log('Error in verify otp controller : ', error);
         return res.json({ success: false, message: error.message });
     }
 });

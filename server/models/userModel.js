@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema({
     profilePic : {
         type : String,
         required : false
+    },
+    profileUpdatedDate: {
+        type: Date,
+        default: new Date(0) // Allows immediate first-time update
     }
 },{timestamps:true});
 
