@@ -8,6 +8,7 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
 
     const myVideo = useRef();
     const remoteVideo = useRef();
+    const streamRef = useRef(null);
     const connectionRef = useRef(); // Logged-in user peer connection reference
 
     // States to manage the flow of call
@@ -23,77 +24,9 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
     const hasSignaled = useRef(false);
     const isCleaningUp = useRef(false);
 
-    useEffect(() => {
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((currentStream) => {
-            setStream(currentStream);
-
-            if (myVideo.current) {
-                myVideo.current.srcObject = currentStream;
-            }
-            if (isInitiator && selectedUser) {
-                callToUser(selectedUser, currentStream);
-            }
-        }).catch(err => {
-            console.error("Access denied for camera/mic", err);
-            toast.error("Camera access denied");
-            onEnd();
-        });
-
-        if (!incomingCall && incomingCallData) {
-            setIncomingCall(true);
-            setCaller(incomingCallData.callerId);
-            setCallerSignal(incomingCallData.signal);
-
-            // console.log('Incomming call data : ', incomingCallData);
-            // console.log(`Logged-in user : ${user.firstName + " " + user.lastName} | Socket ID : ${mySocketId}`);
-        }
-
-        // socket.on('call-accepted', (data) => {
-        //     setCallAccepted(true);
-        //     setCaller(data.calleeId);
-        //     if (connectionRef.current && !connectionRef.current.destroyed) {
-        //         connectionRef.current.signal(data.signal);
-        //     }
-        // });
-
-        socket.on('call-rejected', (data) => {
-            toast.error(`Call rejected from , ${data.from}`);
-            cleanup();
-        })
-
-        socket.on('call-ended', (data) => {
-            // console.log(`Call ended from : ${data.from}`);
-            toast(`Call ended from ${data.from}.`, { icon: '📞' });
-            cleanup();
-        });
-
-        return ()=> {
-            socket.off('call-rejected');
-            socket.off('call-ended');
-        }
-
-    }, []);
-
-    useEffect(() => {
-        socket.on('disconnect-user', (data) => {
-            // console.log(`Disconnected User : ${data.user}`);
-            if (caller === data.user) {
-                // console.log('matched disconnected user');
-                endCall();
-            }
-            // else {
-            //     console.log('Not matched');
-            // }
-        });
-
-        return () =>{
-            socket.off('disconnect-user');
-        }
-    }, [caller]);
-
     // Function to call user
     const callToUser = (selectedUser, currentStream) => {
-        
+
         if (!currentStream) return; // If currentStream isn't ready yet, don't start the peer
         // console.log("Call to user : ", selectedUser.firstName + " " + selectedUser.lastName, " | User Id : ", selectedUser._id);
         // console.log(`Logged-in user : ${user.firstName + " " + user.lastName} | Socket ID : ${mySocketId}`);
@@ -101,16 +34,23 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
         const peer = new Peer({
             initiator: true,
             trickle: false,
-            stream: currentStream
+            stream: currentStream,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' },
+                    // Add a TURN server here for a 100% success rate
+                ]
+            }
         });
 
         hasSignaled.current = false;
         peer.on('signal', (data) => {
             if (!hasSignaled.current) {
                 socket.emit('call-to-user', {
-                    callerId : user._id, // or mySocketId
+                    callerId: user._id, // or mySocketId
                     caller_name: user.firstName,
-                    caller_socket : mySocketId,
+                    caller_socket: mySocketId,
                     calleeId: selectedUser._id,
                     callee_name: selectedUser.firstName,
                     signal: data,
@@ -136,18 +76,9 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
         connectionRef.current = peer;
     }
 
-    // Function to reject incoming call
-    const rejectCall = () => {
-        setIncomingCall(false);
-        setCallAccepted(false);
-
-        cleanup();
-        socket.emit('reject-call', { to: caller, from_name: user.firstName });
-    }
-
     // Function to accept call
     const acceptCall = () => {
-        if(!stream){
+        if (!stream) {
             toast.error('Media stream is not ready. Please wait a moment');
             return;
         }
@@ -157,7 +88,14 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
         const peer = new Peer({
             initiator: false,
             trickle: false,
-            stream: stream
+            stream: stream,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' },
+                    // Add a TURN server here for a 100% success rate
+                ]
+            }
         });
 
         peer.on('signal', (data) => {
@@ -165,7 +103,7 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
                 socket.emit('accept-call', {
                     signal: data,
                     callerId: caller,
-                    calleeId : user._id,
+                    calleeId: user._id,
                     callee_socket: mySocketId,
                     callee_name: user.firstName
                 });
@@ -176,6 +114,8 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
         });
 
         peer.on('stream', (remoteStream) => {
+            // console.log("Remote Audio Tracks:", remoteStream.getAudioTracks().length);
+            // console.log("Audio Track Enabled:", remoteStream.getAudioTracks()[0]?.enabled);
             // if (remoteVideo.current) remoteVideo.current.srcObject = remoteStream;
             setRemoteStream(remoteStream);
         })
@@ -189,24 +129,14 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
         // console.log("Callee side. Caller Signal : ", callerSignal);
     }
 
-    useEffect(() => {
-    // We check for remoteStream specifically because 'stream' is YOUR local camera
-    if (callAccepted && remoteVideo.current && remoteStream) {
-        remoteVideo.current.srcObject = remoteStream;
-        
-        // Auto-play safety check
-        remoteVideo.current.play().catch(err => {
-            console.error("Remote video play failed:", err);
-        });
+    // Function to reject incoming call
+    const rejectCall = () => {
+        setIncomingCall(false);
+        setCallAccepted(false);
+
+        cleanup();
+        socket.emit('reject-call', { to: caller, from_name: user.firstName });
     }
-    }, [callAccepted, remoteStream]);
-    
-    // Also ensure local video stays attached after re-renders
-    useEffect(() => {
-        if (stream && myVideo.current) {
-            myVideo.current.srcObject = stream;
-        }
-    }, [stream, callAccepted]);
 
     // Function to end call
     const endCall = () => {
@@ -216,24 +146,57 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
         if (isInitiator && !callAccepted) {
             socket.emit('cancel-call', { to: selectedUser._id });
         }
-        else{
-            socket.emit('end-call', { to: caller, from_name: user.firstName , callerId : user._id, calleeId : caller});
+        else {
+            socket.emit('end-call', { to: caller, from_name: user.firstName, callerId: user._id, calleeId: caller });
             toast("Call Ended", { icon: '📞' });
         }
         cleanup();
     }
+
+    // Function to toggle mic
+    const toggleMute = () => {
+        if (stream) { // Check if stream exists
+            const audioTrack = stream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                setIsMuted(!audioTrack.enabled);
+            }
+        }
+    };
+
+    // Function to toggle video
+    const toggleVideo = () => {
+        if (stream) { // Check if stream exists
+            const videoTrack = stream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                setVideoOff(!videoTrack.enabled);
+            }
+        }
+    };
 
     // --- THE CLEANUP FUNCTION ---
     const cleanup = useCallback(() => {
         if (isCleaningUp.current) return;
         isCleaningUp.current = true;
 
-        // A. Remove socket listeners first so no more signals are processed
+        // Remove socket listeners first so no more signals are processed
         socket.off('call-accepted');
         socket.off('call-rejected');
         socket.off('call-ended');
 
-        // B. Destroy Peer connection
+        // Get the stream from the Ref or State
+        const activeStream = streamRef.current || stream;
+
+        // Explicitly stop ALL tracks to turn off the hardware light
+        if (activeStream) {
+            activeStream.getTracks().forEach(track => {
+                track.stop(); // Stops the hardware (Camera/Mic)
+                track.enabled = false; // Disables the track
+            });
+        }
+        
+        // Destroy Peer connection
         if (connectionRef.current) {
             // Remove peer internal listeners to prevent them firing during destruction
             connectionRef.current.removeAllListeners('signal');
@@ -243,29 +206,113 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
             connectionRef.current = null;
         }
 
-        // C. Stop Camera/Mic tracks
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            setStream(null);
-        }
-
-        // D. Clear Video Elements
+        // Clear Video Elements
         if (myVideo.current) myVideo.current.srcObject = null;
         if (remoteVideo.current) remoteVideo.current.srcObject = null;
 
-        // E. Notify Parent to unmount
+        // Reset states
+        setStream(null);
+        streamRef.current = null;
+        setRemoteStream(null);
+
+        // Notify Parent to unmount
         onEnd();
-    }, [socket, onEnd]);
+    }, [stream, onEnd]);
 
-    const toggleMute = () => {
-        stream.getAudioTracks()[0].enabled = isMuted;
-        setIsMuted(!isMuted);
-    };
+    useEffect(() => {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then((currentStream) => {
+                setStream(currentStream);
+                streamRef.current = currentStream;
 
-    const toggleVideo = () => {
-        stream.getVideoTracks()[0].enabled = videoOff;
-        setVideoOff(!videoOff);
-    };
+                if (myVideo.current) {
+                    myVideo.current.srcObject = currentStream;
+                }
+
+                // If we are answering a call
+                if (!incomingCall && incomingCallData) {
+                    setIncomingCall(true);
+                    setCaller(incomingCallData.callerId);
+                    setCallerSignal(incomingCallData.signal);
+
+                    // console.log('Incomming call data : ', incomingCallData);
+                    // console.log(`Logged-in user : ${user.firstName + " " + user.lastName} | Socket ID : ${mySocketId}`);
+                }
+
+                // If we are starting a call
+                if (isInitiator && selectedUser) {
+                    callToUser(selectedUser, currentStream);
+                }
+
+            }).catch(err => {
+                console.error("Access denied for camera/mic", err);
+                toast.error("Please allow camera/microphone access");
+                onEnd();
+            });        
+
+        socket.on('call-rejected', (data) => {
+            toast.error(`Call rejected from , ${data.from}`);
+            cleanup();
+        })
+
+        socket.on('call-ended', (data) => {
+            // console.log(`Call ended from : ${data.from}`);
+            toast(`Call ended from ${data.from}.`, { icon: '📞' });
+            cleanup();
+        });
+
+        return () => {
+            socket.off('call-rejected');
+            socket.off('call-ended');
+        }
+
+    }, []);
+
+    // When user refreshes page , end call
+    useEffect(() => {
+        socket.on('disconnect-user', (data) => {
+            // console.log(`Disconnected User : ${data.user}`);
+            if (caller === data.user) {
+                // console.log('matched disconnected user');
+                endCall();
+            }
+            // else {
+            //     console.log('Not matched');
+            // }
+        });
+
+        return () => {
+            socket.off('disconnect-user');
+        }
+    }, [caller]);  
+
+    useEffect(() => {
+        // We check for remoteStream specifically because 'stream' is YOUR local camera
+        if (callAccepted && remoteVideo.current && remoteStream) {
+            remoteVideo.current.srcObject = remoteStream;
+
+            // Auto-play safety check
+            remoteVideo.current.play().catch(err => {
+                console.error("Remote video play failed:", err);
+            });
+        }
+    }, [callAccepted, remoteStream]);
+
+    // Also ensure local video stays attached after re-renders
+    useEffect(() => {
+        if (stream && myVideo.current) {
+            myVideo.current.srcObject = stream;
+        }
+    }, [stream, callAccepted]);
+    
+    useEffect(() => {
+        return () => {
+            // Fail-safe: stop tracks if component unmounts for any reason
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, []);
 
     return (
         <>
@@ -275,7 +322,7 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
             {/* If call is accepted, show the Video Streams */}
             {(callAccepted || isInitiator) && <div className="fixed inset-0 z-[2000] bg-black flex flex-col items-center justify-center text-white">
                 <div className="relative w-full h-full flex flex-col md:flex-row items-center justify-around p-4">
-                    
+
                     {/* Remote Video (Full Screen or Large) */}
                     <div className="relative bg-zinc-900 w-full h-1/2 md:h-3/4 rounded-xl overflow-hidden border border-zinc-700">
                         <video ref={remoteVideo} autoPlay playsInline className="w-full h-full object-cover" />
@@ -302,7 +349,7 @@ export const VideoCall = ({ socket, mySocketId, selectedUser, isInitiator, incom
                         </button>
 
                         <button onClick={toggleVideo} className={`p-4 rounded-full ${videoOff ? 'bg-red-500' : 'bg-zinc-700'}`}>
-                            <i className={`fa ${videoOff ? 'fa-video-camera' : 'fa-video-camera'}`} />
+                            <i className={`fa ${videoOff ? 'fa-solid fa-video-slash' : 'fa-video-camera'}`} />
                         </button>
                     </div>
                 </div>
