@@ -596,13 +596,13 @@ function ChatArea({ socket, onlineUsers, setShowCallScreen }) {
                         }}
                     />
                     <label>
-                        <button type="button" className={`img-btn fa fa-picture-o hidden sm:flex btn btn-circle text-emerald-500`}
+                        <button type="button" className={`img-btn fa fa-regular fa-image hidden sm:flex btn btn-circle text-emerald-500`}
                             onClick={() => fileInputRef.current?.click()}>
                         </button>
                         <input type="file" id="file" multiple style={{ display: 'none' }} accept="image/*,video/*"
                             onChange={handleFiles} ref={fileInputRef} />
                     </label>
-                    <button className="fa fa-smile-o send-emoji-btn" aria-hidden="true" onClick={() => { setShowEmoji(!showEmoji) }}></button>
+                    <button className="fa fa-regular fa-face-smile send-emoji-btn" aria-hidden="true" onClick={() => { setShowEmoji(!showEmoji) }}></button>
                     <button disabled={!message.trim()} className="fa fa-paper-plane send-message-btn" onClick={() => sendMessage()}></button>
                 </div>)}
 
