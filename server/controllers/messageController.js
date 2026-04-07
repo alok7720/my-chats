@@ -37,7 +37,7 @@ router.get('/get-messages/:chatId', authMiddleware, async (req, res) => {
         const { skip = 0, limit = 100 } = req.query; // Default limit of 100
 
         const allMsg = await Message.find({ chatId: req.params.chatId })
-                                    .sort({ createdAt: 1 })
+                                    .sort({ createdAt: -1 })
                                     .skip(parseInt(skip))
                                     .limit(parseInt(limit));
 

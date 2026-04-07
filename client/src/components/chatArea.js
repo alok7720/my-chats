@@ -209,6 +209,7 @@ function ChatArea({ socket, onlineUsers, setShowCallScreen }) {
             setIsInitialLoading(true); // Start loading skeleton
             setSkip(0);
             setHasMore(true);
+            setAllMsgs([]);
         }
         else{
             setLoadingMore(true);
@@ -218,7 +219,7 @@ function ChatArea({ socket, onlineUsers, setShowCallScreen }) {
             const currentSkip = isInitial ? 0 : skip;
             const response = await getMessages(selectedChat._id, currentSkip, 100);
             if (response.success) {
-                const newMsgs = response.data;
+                const newMsgs = response.data.reverse();
 
                 if (isInitial) {
                     setAllMsgs(newMsgs);
@@ -231,7 +232,6 @@ function ChatArea({ socket, onlineUsers, setShowCallScreen }) {
                 } else {
                     // Record height before prepending
                     const prevHeight = messageContainerRef.current.scrollHeight;
-
                     setAllMsgs(prev => [...newMsgs, ...prev]);
                     setSkip(prev => prev + newMsgs.length);
 
@@ -256,9 +256,11 @@ function ChatArea({ socket, onlineUsers, setShowCallScreen }) {
 
     // Scroll Event Handler
     const handleScroll = (e) => {
-        const { scrollTop } = e.currentTarget;
-        // If user reaches the top (scrollTop === 0)
-        if (scrollTop === 0 && hasMore && !loadingMore) {
+        const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+        // 1. Don't trigger if we are already loading
+        // 2. Don't trigger if the initial load hasn't finished
+        // 3. ONLY trigger if scrollTop is 0 AND we have messages (meaning we are at the top of a list)
+        if (scrollTop === 0 && hasMore && !loadingMore && !isInitialLoading && allMsgs.length > 0) {
             getAllMsg(false);
         }
 };
@@ -342,10 +344,12 @@ function ChatArea({ socket, onlineUsers, setShowCallScreen }) {
 
         return () =>{
             socket.off('started-typing');
-            socket?.off('user-busy');
+            socket.off('user-busy');
+            socket.off('receive-message');
+            socket.off('message-count-cleared');
         }
 
-    }, [selectedChat]);
+    }, [selectedChat?._id]);
 
     // Object to store detials of current selected user
     let selectedUser;
